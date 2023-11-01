@@ -1,0 +1,130 @@
+diff --git a/application/org.openjdk.jmc.flightrecorder.graphview/pom.xml b/application/org.openjdk.jmc.flightrecorder.graphview/pom.xml
+index 9e05408..733fcd4 100644
+--- a/application/org.openjdk.jmc.flightrecorder.graphview/pom.xml
++++ b/application/org.openjdk.jmc.flightrecorder.graphview/pom.xml
+@@ -42,80 +42,4 @@
+ 	</parent>
+ 	<artifactId>org.openjdk.jmc.flightrecorder.graphview</artifactId>
+ 	<packaging>eclipse-plugin</packaging>
+-
+-	<properties>
+-		<download.maven.plugin.version>1.4.2</download.maven.plugin.version>
+-		<download-maven-plugin.phase>process-resources</download-maven-plugin.phase>
+-		<download-maven-plugin.output>${project.basedir}/src/main/resources/jslibs</download-maven-plugin.output>
+-		<spotless.config.path>${basedir}/../../configuration/ide/eclipse/formatting/formatting.xml</spotless.config.path>
+-		<spotless.config.path.js>${basedir}/../../configuration/ide/eclipse/formatting/formattingjs.xml</spotless.config.path.js>
+-	</properties>
+-
+-	<build>
+-		<plugins>
+-			<plugin>
+-				<groupId>com.googlecode.maven-download-plugin</groupId>
+-				<artifactId>download-maven-plugin</artifactId>
+-				<version>${download.maven.plugin.version}</version>
+-				<executions>
+-					<execution>
+-						<id>d3-v5-js</id>
+-						<phase>${download-maven-plugin.phase}</phase>
+-						<goals>
+-							<goal>wget</goal>
+-						</goals>
+-						<configuration>
+-							<url>https://d3js.org/d3.v5.min.js</url>
+-							<unpack>false</unpack>
+-							<outputDirectory>${download-maven-plugin.output}</outputDirectory>
+-							<skipCache>true</skipCache>
+-							<overwrite>true</overwrite>
+-						</configuration>
+-					</execution>
+-					<execution>
+-						<id>wasm</id>
+-						<phase>${download-maven-plugin.phase}</phase>
+-						<goals>
+-							<goal>wget</goal>
+-						</goals>
+-						<configuration>
+-							<url>https://unpkg.com/@hpcc-js/wasm@0.3.14/dist/index.js</url>
+-							<unpack>false</unpack>
+-							<outputDirectory>${download-maven-plugin.output}</outputDirectory>
+-							<skipCache>true</skipCache>
+-							<overwrite>true</overwrite>
+-						</configuration>
+-					</execution>
+-					<execution>
+-						<id>d3-graphviz-js</id>
+-						<phase>${download-maven-plugin.phase}</phase>
+-						<goals>
+-							<goal>wget</goal>
+-						</goals>
+-						<configuration>
+-							<url>https://unpkg.com/d3-graphviz@3.1.0/build/d3-graphviz.js</url>
+-							<unpack>false</unpack>
+-							<outputDirectory>${download-maven-plugin.output}</outputDirectory>
+-							<skipCache>true</skipCache>
+-							<overwrite>true</overwrite>
+-						</configuration>
+-					</execution>
+-					<execution>
+-						<id>graphvizlib-wasm</id>
+-						<phase>${download-maven-plugin.phase}</phase>
+-						<goals>
+-							<goal>wget</goal>
+-						</goals>
+-						<configuration>
+-							<url>https://unpkg.com/@hpcc-js/wasm@0.3.14/dist/graphvizlib.wasm</url>
+-							<unpack>false</unpack>
+-							<outputDirectory>${download-maven-plugin.output}</outputDirectory>
+-							<skipCache>true</skipCache>
+-							<overwrite>true</overwrite>
+-						</configuration>
+-					</execution>
+-				</executions>
+-			</plugin>
+-		</plugins>
+-	</build>
+ </project>
+diff --git a/application/org.openjdk.jmc.flightrecorder.graphview/src/main/java/org/openjdk/jmc/flightrecorder/graphview/views/GraphView.java b/application/org.openjdk.jmc.flightrecorder.graphview/src/main/java/org/openjdk/jmc/flightrecorder/graphview/views/GraphView.java
+index 1389545..d356c2e 100644
+--- a/application/org.openjdk.jmc.flightrecorder.graphview/src/main/java/org/openjdk/jmc/flightrecorder/graphview/views/GraphView.java
++++ b/application/org.openjdk.jmc.flightrecorder.graphview/src/main/java/org/openjdk/jmc/flightrecorder/graphview/views/GraphView.java
+@@ -85,18 +85,7 @@ import org.openjdk.jmc.ui.misc.DisplayToolkit;
+ public class GraphView extends ViewPart implements ISelectionListener {
+ 	private static final String HTML_PAGE;
+ 	static {
+-		String jsD3V5 = "jslibs/d3.v5.min.js";
+-		String jsGraphviz = "jslibs/index.js";
+-		String wasmGraphviz = "jslibs/graphvizlib.wasm";
+-		String jsGraphizD3 = "jslibs/d3-graphviz.js";
+-
+-		String wasmBase64 = loadBase64FromFile(wasmGraphviz);
+-
+-		HTML_PAGE = String.format(loadStringFromFile("page.template"), loadLibraries(jsD3V5),
+-				// we inline base64 wasm in the library code to avoid fetching it at runtime
+-				loadStringFromFile(jsGraphviz, "wasmBinaryFile=\"graphvizlib.wasm\";",
+-						"wasmBinaryFile=dataURIPrefix + '" + wasmBase64 + "';"),
+-				loadLibraries(jsGraphizD3));
++        HTML_PAGE = String.format(loadStringFromFile("page.template"));
+ 	}
+ 
+ 	private enum ModelState {
+diff --git a/application/org.openjdk.jmc.flightrecorder.graphview/src/main/resources/page.template b/application/org.openjdk.jmc.flightrecorder.graphview/src/main/resources/page.template
+index eb7423a..e424576 100644
+--- a/application/org.openjdk.jmc.flightrecorder.graphview/src/main/resources/page.template
++++ b/application/org.openjdk.jmc.flightrecorder.graphview/src/main/resources/page.template
+@@ -3,12 +3,13 @@
+ 
+ <head>
+ 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+-	<script>%1$s</script>
+-	<script>%2$s</script>
+-	<script>%3$s</script>
+ </head>
+ 
+ <body>
++    <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
++    <script type="text/javascript" src="https://unpkg.com/@hpcc-js/wasm@0.3.14/dist/index.js"></script>
++    <script type="text/javascript" src="https://unpkg.com/d3-graphviz@3.1.0/build/d3-graphviz.js"></script>
++    <script type="text/javascript" src="https://unpkg.com/@hpcc-js/wasm@0.3.14/dist/graphvizlib.wasm"></script>
+ 	<div id="graph" style="text-align: center;"></div>
+ 	<script type="text/javascript">
+ 		

@@ -1,0 +1,12 @@
+diff --git a/application/org.openjdk.jmc.rcp.product/pom.xml b/application/org.openjdk.jmc.rcp.product/pom.xml
+index 2ebccfb..1cc8aca 100644
+--- a/application/org.openjdk.jmc.rcp.product/pom.xml
++++ b/application/org.openjdk.jmc.rcp.product/pom.xml
+@@ -74,7 +74,6 @@
+ 							<rootFolders>
+ 								<win32>${productName}</win32>
+ 								<macosx>${productName}.app</macosx>
+-								<linux>${productName}</linux>
+ 							</rootFolders>
+ 						</product>
+ 					</products>
