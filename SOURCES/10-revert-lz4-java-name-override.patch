@@ -1,0 +1,42 @@
+diff --git a/application/org.openjdk.jmc.feature.core/feature.xml b/application/org.openjdk.jmc.feature.core/feature.xml
+index f42eed3..b53c5e5 100644
+--- a/application/org.openjdk.jmc.feature.core/feature.xml
++++ b/application/org.openjdk.jmc.feature.core/feature.xml
+@@ -95,7 +95,7 @@
+          unpack="false"/>
+ 
+    <plugin
+-         id="org.lz4.lz4-java"
++         id="lz4-java"
+          download-size="0"
+          install-size="0"
+          version="0.0.0"
+diff --git a/application/org.openjdk.jmc.feature.flightrecorder/feature.xml b/application/org.openjdk.jmc.feature.flightrecorder/feature.xml
+index cd6d0f9..22638fe 100644
+--- a/application/org.openjdk.jmc.feature.flightrecorder/feature.xml
++++ b/application/org.openjdk.jmc.feature.flightrecorder/feature.xml
+@@ -130,7 +130,7 @@
+          unpack="false"/>
+ 
+    <plugin
+-         id="org.lz4.lz4-java"
++         id="lz4-java"
+          download-size="0"
+          install-size="0"
+          version="0.0.0"
+diff --git a/releng/third-party/pom.xml b/releng/third-party/pom.xml
+index 8e0dd86..aba63c8 100644
+--- a/releng/third-party/pom.xml
++++ b/releng/third-party/pom.xml
+@@ -88,11 +88,6 @@
+ 								</artifact>
+ 								<artifact>
+ 									<id>org.lz4:lz4-java:${lz4.version}</id>
+-									<override>true</override>
+-									<instructions>
+-										<Bundle-Name>org.lz4.lz4-java</Bundle-Name>
+-										<Bundle-SymbolicName>org.lz4.lz4-java</Bundle-SymbolicName>
+-									</instructions>
+ 								</artifact>
+ 								<artifact>
+ 									<id>org.hdrhistogram:HdrHistogram:${hdrhistogram.version}</id>

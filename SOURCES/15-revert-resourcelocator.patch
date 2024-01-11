@@ -1,0 +1,208 @@
+diff --git a/application/org.openjdk.jmc.console.ui/src/main/java/org/openjdk/jmc/console/ui/editor/internal/ConsoleFormPage.java b/application/org.openjdk.jmc.console.ui/src/main/java/org/openjdk/jmc/console/ui/editor/internal/ConsoleFormPage.java
+index a6a2a7c..a252f9e 100644
+--- a/application/org.openjdk.jmc.console.ui/src/main/java/org/openjdk/jmc/console/ui/editor/internal/ConsoleFormPage.java
++++ b/application/org.openjdk.jmc.console.ui/src/main/java/org/openjdk/jmc/console/ui/editor/internal/ConsoleFormPage.java
+@@ -43,7 +43,6 @@ import org.eclipse.jface.action.IToolBarManager;
+ import org.eclipse.jface.dialogs.IMessageProvider;
+ import org.eclipse.jface.resource.ImageDescriptor;
+ import org.eclipse.jface.resource.JFaceResources;
+-import org.eclipse.jface.resource.ResourceLocator;
+ import org.eclipse.swt.graphics.Image;
+ import org.eclipse.swt.widgets.Composite;
+ import org.eclipse.swt.widgets.Display;
+@@ -54,6 +53,7 @@ import org.eclipse.ui.forms.IManagedForm;
+ import org.eclipse.ui.forms.IMessageManager;
+ import org.eclipse.ui.forms.editor.FormPage;
+ import org.eclipse.ui.forms.widgets.Form;
++import org.eclipse.ui.plugin.AbstractUIPlugin;
+ import org.openjdk.jmc.console.ui.ConsolePlugin;
+ import org.openjdk.jmc.console.ui.editor.IConsolePageContainer;
+ import org.openjdk.jmc.console.ui.editor.IConsolePageStateHandler;
+@@ -175,7 +175,7 @@ public class ConsoleFormPage extends FormPage implements IConsolePageContainer {
+ 		String iconName = config.getAttribute(ATTRIBUTE_ICON);
+ 		if (iconName != null) {
+ 			String pluginId = config.getDeclaringExtension().getContributor().getName();
+-			ImageDescriptor iconDesc = ResourceLocator.imageDescriptorFromBundle(pluginId, iconName).orElse(null);
++			ImageDescriptor iconDesc = AbstractUIPlugin.imageDescriptorFromPlugin(pluginId, iconName);
+ 			if (iconDesc != null) {
+ 				icon = (Image) JFaceResources.getResources().get(iconDesc);
+ 			} else {
+diff --git a/application/org.openjdk.jmc.flightrecorder.ext.jfx/src/main/java/org/openjdk/jmc/flightrecorder/ext/jfx/JfxPage.java b/application/org.openjdk.jmc.flightrecorder.ext.jfx/src/main/java/org/openjdk/jmc/flightrecorder/ext/jfx/JfxPage.java
+index d0be24a..e3f1000 100644
+--- a/application/org.openjdk.jmc.flightrecorder.ext.jfx/src/main/java/org/openjdk/jmc/flightrecorder/ext/jfx/JfxPage.java
++++ b/application/org.openjdk.jmc.flightrecorder.ext.jfx/src/main/java/org/openjdk/jmc/flightrecorder/ext/jfx/JfxPage.java
+@@ -38,7 +38,6 @@ import java.util.List;
+ import java.util.stream.Stream;
+ 
+ import org.eclipse.jface.resource.ImageDescriptor;
+-import org.eclipse.jface.resource.ResourceLocator;
+ import org.eclipse.swt.SWT;
+ import org.eclipse.swt.custom.SashForm;
+ import org.eclipse.swt.graphics.Image;
+@@ -46,6 +45,7 @@ import org.eclipse.swt.widgets.Composite;
+ import org.eclipse.ui.forms.widgets.Form;
+ import org.eclipse.ui.forms.widgets.FormToolkit;
+ import org.eclipse.ui.forms.widgets.Section;
++import org.eclipse.ui.plugin.AbstractUIPlugin;
+ import org.openjdk.jmc.common.IState;
+ import org.openjdk.jmc.common.IWritableState;
+ import org.openjdk.jmc.common.item.Aggregators;
+@@ -98,8 +98,8 @@ public class JfxPage extends AbstractDataPage {
+ 
+ 		@Override
+ 		public ImageDescriptor getImageDescriptor(IState state) {
+-			return ResourceLocator.imageDescriptorFromBundle("org.openjdk.jmc.flightrecorder.ext.jfx", //$NON-NLS-1$
+-					"icons/pulse.png").orElse(null); //$NON-NLS-1$
++			return AbstractUIPlugin.imageDescriptorFromPlugin("org.openjdk.jmc.flightrecorder.ext.jfx", //$NON-NLS-1$
++					"icons/pulse.png"); //$NON-NLS-1$
+ 		}
+ 
+ 		@Override
+diff --git a/application/org.openjdk.jmc.flightrecorder.flameview/src/main/java/org/openjdk/jmc/flightrecorder/flameview/views/FlameGraphView.java b/application/org.openjdk.jmc.flightrecorder.flameview/src/main/java/org/openjdk/jmc/flightrecorder/flameview/views/FlameGraphView.java
+index a8b76b0..bb57f10 100644
+--- a/application/org.openjdk.jmc.flightrecorder.flameview/src/main/java/org/openjdk/jmc/flightrecorder/flameview/views/FlameGraphView.java
++++ b/application/org.openjdk.jmc.flightrecorder.flameview/src/main/java/org/openjdk/jmc/flightrecorder/flameview/views/FlameGraphView.java
+@@ -69,7 +69,6 @@ import org.eclipse.jface.action.IMenuManager;
+ import org.eclipse.jface.action.IToolBarManager;
+ import org.eclipse.jface.action.Separator;
+ import org.eclipse.jface.resource.ImageDescriptor;
+-import org.eclipse.jface.resource.ResourceLocator;
+ import org.eclipse.jface.viewers.ISelection;
+ import org.eclipse.jface.viewers.IStructuredSelection;
+ import org.eclipse.swt.SWT;
+@@ -93,6 +92,7 @@ import org.eclipse.ui.IWorkbenchPart;
+ import org.eclipse.ui.PartInitException;
+ import org.eclipse.ui.PlatformUI;
+ import org.eclipse.ui.part.ViewPart;
++import org.eclipse.ui.plugin.AbstractUIPlugin;
+ import org.openjdk.jmc.common.item.IItemCollection;
+ import org.openjdk.jmc.common.item.ItemCollectionToolkit;
+ import org.openjdk.jmc.common.util.StringToolkit;
+@@ -490,7 +490,7 @@ public class FlameGraphView extends ViewPart implements ISelectionListener {
+ 	}
+ 
+ 	private static ImageDescriptor flameviewImageDescriptor(String iconName) {
+-		return ResourceLocator.imageDescriptorFromBundle(PLUGIN_ID, DIR_ICONS + iconName).orElse(null); //$NON-NLS-1$
++		return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, DIR_ICONS + iconName); //$NON-NLS-1$
+ 	}
+ 
+ 	private static String getIconBase64(String iconName) {
+diff --git a/application/org.openjdk.jmc.flightrecorder.metadata/src/main/java/org/openjdk/jmc/flightrecorder/metadata/MetadataPage.java b/application/org.openjdk.jmc.flightrecorder.metadata/src/main/java/org/openjdk/jmc/flightrecorder/metadata/MetadataPage.java
+index 748cebc..019ce5e 100644
+--- a/application/org.openjdk.jmc.flightrecorder.metadata/src/main/java/org/openjdk/jmc/flightrecorder/metadata/MetadataPage.java
++++ b/application/org.openjdk.jmc.flightrecorder.metadata/src/main/java/org/openjdk/jmc/flightrecorder/metadata/MetadataPage.java
+@@ -39,7 +39,6 @@ import java.util.stream.Stream;
+ import org.eclipse.jface.layout.GridDataFactory;
+ import org.eclipse.jface.layout.GridLayoutFactory;
+ import org.eclipse.jface.resource.ImageDescriptor;
+-import org.eclipse.jface.resource.ResourceLocator;
+ import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
+ import org.eclipse.jface.viewers.ISelection;
+ import org.eclipse.jface.viewers.TreePath;
+@@ -51,6 +50,7 @@ import org.eclipse.swt.widgets.Composite;
+ import org.eclipse.swt.widgets.Text;
+ import org.eclipse.ui.forms.widgets.Form;
+ import org.eclipse.ui.forms.widgets.FormToolkit;
++import org.eclipse.ui.plugin.AbstractUIPlugin;
+ import org.openjdk.jmc.common.IState;
+ import org.openjdk.jmc.common.IWritableState;
+ import org.openjdk.jmc.common.item.IItemIterable;
+@@ -231,7 +231,7 @@ public class MetadataPage extends AbstractDataPage {
+ 
+ 		@Override
+ 		public ImageDescriptor getImageDescriptor(IState state) {
+-			return ResourceLocator.imageDescriptorFromBundle(PLUGIN_ID, ICON).orElse(null);
++			return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, ICON);
+ 		}
+ 
+ 		@Override
+diff --git a/application/org.openjdk.jmc.rcp.application/src/main/java/org/openjdk/jmc/rcp/application/ApplicationPlugin.java b/application/org.openjdk.jmc.rcp.application/src/main/java/org/openjdk/jmc/rcp/application/ApplicationPlugin.java
+index bcdf8b9..fff9296 100644
+--- a/application/org.openjdk.jmc.rcp.application/src/main/java/org/openjdk/jmc/rcp/application/ApplicationPlugin.java
++++ b/application/org.openjdk.jmc.rcp.application/src/main/java/org/openjdk/jmc/rcp/application/ApplicationPlugin.java
+@@ -39,7 +39,6 @@ import java.util.logging.Logger;
+ 
+ import org.eclipse.jface.resource.ImageDescriptor;
+ import org.eclipse.jface.resource.ImageRegistry;
+-import org.eclipse.jface.resource.ResourceLocator;
+ import org.eclipse.ui.plugin.AbstractUIPlugin;
+ import org.openjdk.jmc.common.io.IOToolkit;
+ import org.openjdk.jmc.rcp.application.p2.AddRepositoriesJob;
+@@ -144,6 +143,6 @@ public class ApplicationPlugin extends AbstractUIPlugin {
+ 	 * @return the image descriptor
+ 	 */
+ 	public static ImageDescriptor getImageDescriptor(String path) {
+-		return ResourceLocator.imageDescriptorFromBundle(PLUGIN_ID, path).orElse(null);
++		return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, path);
+ 	}
+ }
+diff --git a/application/org.openjdk.jmc.rjmx.ui/src/main/java/org/openjdk/jmc/rjmx/ui/internal/RemoveAction.java b/application/org.openjdk.jmc.rjmx.ui/src/main/java/org/openjdk/jmc/rjmx/ui/internal/RemoveAction.java
+index 6380709..4a66939 100644
+--- a/application/org.openjdk.jmc.rjmx.ui/src/main/java/org/openjdk/jmc/rjmx/ui/internal/RemoveAction.java
++++ b/application/org.openjdk.jmc.rjmx.ui/src/main/java/org/openjdk/jmc/rjmx/ui/internal/RemoveAction.java
+@@ -34,16 +34,16 @@ package org.openjdk.jmc.rjmx.ui.internal;
+ 
+ import org.eclipse.jface.action.Action;
+ import org.eclipse.jface.resource.ImageDescriptor;
+-import org.eclipse.jface.resource.ResourceLocator;
+ import org.eclipse.ui.forms.SectionPart;
++import org.eclipse.ui.plugin.AbstractUIPlugin;
+ import org.openjdk.jmc.ui.misc.MCSectionPart;
+ 
+ /**
+  * Action for removing a {@link SectionPart} in a {@link SectionPartManager}
+  */
+ public class RemoveAction extends Action {
+-	private final static ImageDescriptor ICON = ResourceLocator.imageDescriptorFromBundle("org.eclipse.ui", //$NON-NLS-1$
+-			"icons/full/elcl16/close_view.gif").orElse(null); //$NON-NLS-1$
++	private final static ImageDescriptor ICON = AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui", //$NON-NLS-1$
++			"icons/full/elcl16/close_view.gif"); //$NON-NLS-1$
+ 	final private SectionPartManager m_sectionPartmanager;
+ 	final private MCSectionPart m_part;
+ 
+diff --git a/application/org.openjdk.jmc.ui/src/main/java/org/openjdk/jmc/ui/CoreImages.java b/application/org.openjdk.jmc.ui/src/main/java/org/openjdk/jmc/ui/CoreImages.java
+index 5cd717b..d6a19a9 100644
+--- a/application/org.openjdk.jmc.ui/src/main/java/org/openjdk/jmc/ui/CoreImages.java
++++ b/application/org.openjdk.jmc.ui/src/main/java/org/openjdk/jmc/ui/CoreImages.java
+@@ -35,7 +35,7 @@ package org.openjdk.jmc.ui;
+ import java.util.MissingResourceException;
+ 
+ import org.eclipse.jface.resource.ImageDescriptor;
+-import org.eclipse.jface.resource.ResourceLocator;
++import org.eclipse.ui.plugin.AbstractUIPlugin;
+ 
+ /**
+  * Storage for common ImageDescriptors.
+@@ -177,7 +177,7 @@ public class CoreImages {
+ 	}
+ 
+ 	private static ImageDescriptor createDescriptor(String relPath) {
+-		ImageDescriptor desc = ResourceLocator.imageDescriptorFromBundle(UIPlugin.PLUGIN_ID, relPath).orElse(null);
++		ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin(UIPlugin.PLUGIN_ID, relPath);
+ 		if (desc == null) {
+ 			// FIXME: Throwing an exception has the development time advantage of being very intrusive. For release time, logging might be better.
+ 			throw new MissingResourceException("Missing image '" + relPath + '\'', ImageDescriptor.class.getName(), //$NON-NLS-1$
+diff --git a/application/org.openjdk.jmc.ui/src/main/java/org/openjdk/jmc/ui/misc/ImageDescriptorAdapterFactory.java b/application/org.openjdk.jmc.ui/src/main/java/org/openjdk/jmc/ui/misc/ImageDescriptorAdapterFactory.java
+index de112b0..e04e796 100644
+--- a/application/org.openjdk.jmc.ui/src/main/java/org/openjdk/jmc/ui/misc/ImageDescriptorAdapterFactory.java
++++ b/application/org.openjdk.jmc.ui/src/main/java/org/openjdk/jmc/ui/misc/ImageDescriptorAdapterFactory.java
+@@ -34,7 +34,8 @@ package org.openjdk.jmc.ui.misc;
+ 
+ import org.eclipse.core.runtime.IAdapterFactory;
+ import org.eclipse.jface.resource.ImageDescriptor;
+-import org.eclipse.jface.resource.ResourceLocator;
++import org.eclipse.ui.plugin.AbstractUIPlugin;
++
+ import org.openjdk.jmc.ui.common.resource.IImageResource;
+ import org.openjdk.jmc.ui.common.resource.Resource;
+ import org.openjdk.jmc.ui.common.util.AdapterUtil;
+@@ -49,8 +50,7 @@ public class ImageDescriptorAdapterFactory implements IAdapterFactory {
+ 			if (imageResource != null) {
+ 				Resource r = imageResource.getImageResource();
+ 				if (r != null) {
+-					return adapterType.cast(ResourceLocator
+-							.imageDescriptorFromBundle(r.getPluginId(), r.getResourcePath()).orElse(null));
++					return adapterType.cast(AbstractUIPlugin.imageDescriptorFromPlugin(r.getPluginId(), r.getResourcePath()));
+ 				}
+ 			}
+ 			IGraphical g = AdapterUtil.getAdapter(adaptableObject, IGraphical.class);

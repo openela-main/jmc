@@ -1,0 +1,29 @@
+diff --git a/application/org.openjdk.jmc.feature.ide/feature.xml b/application/org.openjdk.jmc.feature.ide/feature.xml
+index 8e2f469a..3544694a 100644
+--- a/application/org.openjdk.jmc.feature.ide/feature.xml
++++ b/application/org.openjdk.jmc.feature.ide/feature.xml
+@@ -69,11 +69,4 @@
+          install-size="0"
+          version="0.0.0"
+          unpack="false"/>
+-
+-   <plugin
+-         id="org.openjdk.jmc.ide.jdt"
+-         download-size="0"
+-         install-size="0"
+-         version="0.0.0"
+-         unpack="false"/>
+ </feature>
+\ No newline at end of file
+diff --git a/application/pom.xml b/application/pom.xml
+index adefed26..87cb00c0 100644
+--- a/application/pom.xml
++++ b/application/pom.xml
+@@ -94,7 +94,6 @@
+ 		<module>org.openjdk.jmc.flightrecorder.ui</module>
+ 		<module>org.openjdk.jmc.greychart</module>
+ 		<module>org.openjdk.jmc.greychart.ui</module>
+-		<module>org.openjdk.jmc.ide.jdt</module>
+ 		<module>org.openjdk.jmc.ide.launch</module>
+ 		<module>org.openjdk.jmc.ide.ui</module>
+ 		<module>org.openjdk.jmc.joverflow</module>

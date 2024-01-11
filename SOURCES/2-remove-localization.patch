@@ -1,0 +1,48 @@
+diff --git a/application/org.openjdk.jmc.feature.rcp/feature.xml b/application/org.openjdk.jmc.feature.rcp/feature.xml
+index 1e295ca..9687dd4 100644
+--- a/application/org.openjdk.jmc.feature.rcp/feature.xml
++++ b/application/org.openjdk.jmc.feature.rcp/feature.xml
+@@ -51,18 +51,10 @@
+          id="org.openjdk.jmc.feature.console"
+          version="0.0.0"/>
+ 
+-   <includes
+-         id="org.openjdk.jmc.feature.rcp.ja"
+-         version="0.0.0"/>
+-
+    <includes
+          id="org.openjdk.jmc.feature.core"
+          version="0.0.0"/>
+ 
+-   <includes
+-         id="org.openjdk.jmc.feature.rcp.zh_CN"
+-         version="0.0.0"/>
+-
+    <includes
+          id="org.openjdk.jmc.feature.flightrecorder"
+          version="0.0.0"/>
+@@ -104,24 +96,6 @@
+          version="0.0.0"
+          unpack="false"/>
+ 
+-   <plugin
+-         id="org.openjdk.jmc.rcp.application.ja"
+-         nl="ja_JP,ja"
+-         download-size="0"
+-         install-size="0"
+-         version="0.0.0"
+-         fragment="true"
+-         unpack="false"/>
+-
+-   <plugin
+-         id="org.openjdk.jmc.rcp.application.zh_CN"
+-         nl="zh_CN"
+-         download-size="0"
+-         install-size="0"
+-         version="0.0.0"
+-         fragment="true"
+-         unpack="false"/>
+-
+    <plugin
+          id="org.openjdk.jmc.rcp.intro"
+          download-size="0"

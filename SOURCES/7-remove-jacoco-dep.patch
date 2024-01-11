@@ -1,0 +1,16 @@
+diff --git a/application/pom.xml b/application/pom.xml
+index 6b92b98..34b9077 100644
+--- a/application/pom.xml
++++ b/application/pom.xml
+@@ -173,11 +173,6 @@
+ 			<artifactId>flightrecorder.test</artifactId>
+ 			<version>8.0.1-SNAPSHOT</version>
+ 		</dependency>
+-		<dependency>
+-			<groupId>org.jacoco</groupId>
+-			<artifactId>jacoco-maven-plugin</artifactId>
+-			<version>0.8.3</version>
+-		</dependency>
+ 	</dependencies>
+ 	<build>
+ 		<plugins>

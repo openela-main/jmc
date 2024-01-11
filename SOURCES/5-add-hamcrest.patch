@@ -1,0 +1,16 @@
+diff --git a/application/tests/org.openjdk.jmc.rjmx.services.jfr.test/META-INF/MANIFEST.MF b/application/tests/org.openjdk.jmc.rjmx.services.jfr.test/META-INF/MANIFEST.MF
+index bf02b43..a4d5a67 100644
+--- a/application/tests/org.openjdk.jmc.rjmx.services.jfr.test/META-INF/MANIFEST.MF
++++ b/application/tests/org.openjdk.jmc.rjmx.services.jfr.test/META-INF/MANIFEST.MF
+@@ -12,7 +12,9 @@ Require-Bundle: org.junit,
+  org.openjdk.jmc.rjmx.services.jfr,
+  org.openjdk.jmc.rjmx,
+  org.openjdk.jmc.common,
+- org.openjdk.jmc.flightrecorder.configuration
++ org.openjdk.jmc.flightrecorder.configuration,
++ org.hamcrest.core
+ Export-Package: org.openjdk.jmc.rjmx.services.jfr.test
+ Automatic-Module-Name: org.openjdk.jmc.rjmx.services.jfr.test
+-Import-Package: org.openjdk.jmc.flightrecorder.jdk
++Import-Package: org.openjdk.jmc.flightrecorder.jdk,
++ org.hamcrest.core

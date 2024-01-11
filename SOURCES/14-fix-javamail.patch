@@ -1,0 +1,13 @@
+diff --git a/application/org.openjdk.jmc.feature.core/feature.xml b/application/org.openjdk.jmc.feature.core/feature.xml
+index 1eb682d..569f7e2 100644
+--- a/application/org.openjdk.jmc.feature.core/feature.xml
++++ b/application/org.openjdk.jmc.feature.core/feature.xml
+@@ -168,7 +168,7 @@
+          unpack="false"/>
+ 
+    <plugin
+-         id="com.sun.mail.jakarta.mail"
++         id="com.sun.mail.javax.mail"
+          download-size="0"
+          install-size="0"
+          version="0.0.0"
