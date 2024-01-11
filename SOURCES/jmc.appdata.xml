@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>jmc.desktop</id>
+  <metadata_license>FSAP</metadata_license>
+  <project_license>UPL or BSD</project_license>
+  <name>JDK Mission Control</name>
+  <summary>A Profiling and Diagnostics Tool for the Hotspot JVM</summary>
+  <description>
+    <p>
+      JDK Mission Control is a powerful profiler for HotSpot JVMs and has an
+      advanced set of tools that enables efficient and detailed analysis of the
+      extensive data collected by JDK Flight Recorder. The tool chain enables
+      developers and administrators to collect and analyze data from Java
+      applications running locally or deployed in production environments.
+    </p>
+  </description>
+  <url type="homepage">http://openjdk.java.net/projects/jmc/</url>
+  <launchable type="desktop-id">jmc.desktop</launchable>
+  <developer_name>The OpenJDK Community</developer_name>
+</component>
