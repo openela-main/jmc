@@ -1,0 +1,81 @@
+diff --git a/core/org.openjdk.jmc.common/pom.xml b/core/org.openjdk.jmc.common/pom.xml
+index 7e849bff..6ee9e7e6 100644
+--- a/core/org.openjdk.jmc.common/pom.xml
++++ b/core/org.openjdk.jmc.common/pom.xml
+@@ -46,9 +46,9 @@
+ 			<version>1.2.3</version>
+ 		</dependency>
+ 		<dependency>
+-			<groupId>org.lz4</groupId>
++			<groupId>at.yawk.lz4</groupId>
+ 			<artifactId>lz4-java</artifactId>
+-			<version>1.8.0</version>
++			<version>1.10.2</version>
+ 		</dependency>
+ 	</dependencies>
+ 	<properties>
+diff --git a/releng/platform-definitions/platform-definition-2021-06/platform-definition-2021-06.target b/releng/platform-definitions/platform-definition-2021-06/platform-definition-2021-06.target
+index 70d29746..5f45c551 100644
+--- a/releng/platform-definitions/platform-definition-2021-06/platform-definition-2021-06.target
++++ b/releng/platform-definitions/platform-definition-2021-06/platform-definition-2021-06.target
+@@ -39,7 +39,7 @@
+             <unit id="com.sun.mail.jakarta.mail" version="2.0.1"/>
+             <unit id="com.sun.activation.jakarta.activation" version="2.0.1"/>
+             <unit id="org.owasp.encoder" version="1.2.3"/>
+-            <unit id="lz4-java" version="1.8.0"/>
++            <unit id="lz4-java" version="0.0.0"/>
+             <unit id="org.hdrhistogram.HdrHistogram" version="2.1.12"/>
+             <unit id="org.adoptopenjdk.jemmy-awt-input" version="2.0.0"/>
+             <unit id="org.adoptopenjdk.jemmy-browser" version="2.0.0"/>
+diff --git a/releng/platform-definitions/platform-definition-2021-09/platform-definition-2021-09.target b/releng/platform-definitions/platform-definition-2021-09/platform-definition-2021-09.target
+index 22faa57f..34813034 100644
+--- a/releng/platform-definitions/platform-definition-2021-09/platform-definition-2021-09.target
++++ b/releng/platform-definitions/platform-definition-2021-09/platform-definition-2021-09.target
+@@ -39,7 +39,7 @@
+             <unit id="com.sun.mail.jakarta.mail" version="2.0.1"/>
+             <unit id="com.sun.activation.jakarta.activation" version="2.0.1"/>
+             <unit id="org.owasp.encoder" version="1.2.3"/>
+-            <unit id="lz4-java" version="1.8.0"/>
++            <unit id="lz4-java" version="0.0.0"/>
+             <unit id="org.hdrhistogram.HdrHistogram" version="2.1.12"/>
+             <unit id="org.adoptopenjdk.jemmy-awt-input" version="2.0.0"/>
+             <unit id="org.adoptopenjdk.jemmy-browser" version="2.0.0"/>
+diff --git a/releng/platform-definitions/platform-definition-2021-12/platform-definition-2021-12.target b/releng/platform-definitions/platform-definition-2021-12/platform-definition-2021-12.target
+index ebfc34eb..c78f207c 100644
+--- a/releng/platform-definitions/platform-definition-2021-12/platform-definition-2021-12.target
++++ b/releng/platform-definitions/platform-definition-2021-12/platform-definition-2021-12.target
+@@ -39,7 +39,7 @@
+             <unit id="com.sun.mail.jakarta.mail" version="2.0.1"/>
+             <unit id="com.sun.activation.jakarta.activation" version="2.0.1"/>
+             <unit id="org.owasp.encoder" version="1.2.3"/>
+-            <unit id="lz4-java" version="1.8.0"/>
++            <unit id="lz4-java" version="0.0.0"/>
+             <unit id="org.hdrhistogram.HdrHistogram" version="2.1.12"/>
+             <unit id="org.adoptopenjdk.jemmy-awt-input" version="2.0.0"/>
+             <unit id="org.adoptopenjdk.jemmy-browser" version="2.0.0"/>
+diff --git a/releng/third-party/pom.xml b/releng/third-party/pom.xml
+index 35dd8c88..4a58c682 100644
+--- a/releng/third-party/pom.xml
++++ b/releng/third-party/pom.xml
+@@ -49,10 +49,10 @@
+ 		<jetty.version>10.0.7</jetty.version>
+ 		<jemmy.version>2.0.0</jemmy.version>
+ 		<jetty-maven-plugin.version>9.4.43.v20210629</jetty-maven-plugin.version>
+-		<lz4.version>1.8.0</lz4.version>
++		<lz4.version>1.10.2</lz4.version>
+ 		<maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
+ 		<owasp.encoder.version>1.2.3</owasp.encoder.version>
+-		<p2-maven-plugin.version>1.5.0</p2-maven-plugin.version>
++		<p2-maven-plugin.version>2.1.0</p2-maven-plugin.version>
+ 		<spifly.version>1.3.4</spifly.version>
+ 	</properties>
+ 
+@@ -86,7 +86,7 @@
+ 									<id>org.owasp.encoder:encoder:${owasp.encoder.version}</id>
+ 								</artifact>
+ 								<artifact>
+-									<id>org.lz4:lz4-java:${lz4.version}</id>
++									<id>at.yawk.lz4:lz4-java:${lz4.version}</id>
+ 								</artifact>
+ 								<artifact>
+ 									<id>org.hdrhistogram:HdrHistogram:${hdrhistogram.version}</id>

@@ -4,13 +4,13 @@
 %global patchlevel 0
 
 # Revision
-%global revnum 13
+%global revnum 18
 # set to 1 for snapshots, 0 for release
 %global usesnapshot 1
 
 # SNAPSHOT version
 %global revhash 7f42e4a10291d7e9316711edd81a183951cdae57
-%global revdate 20220203
+%global revdate 20260111
 
 %global tarball_name %{major}.%{minor}.%{patchlevel}-ga.tar.gz
 
@@ -21,8 +21,8 @@
 %global debug_package %{nil}
 
 %if %{usesnapshot}
-  %global releasestr %{revnum}.%{revdate}
-  %global repositorystr repository-%{major}.%{minor}.%{patchlevel}-%{revdate}.tar.gz
+  %global releasestr %{revnum}
+  %global repositorystr repository-%{major}.%{minor}.%{patchlevel}.tar.gz
 %else
   %global releasestr %{revnum}
   %global repositorystr repository-%{major}.%{minor}.%{patchlevel}.tar.gz
@@ -79,7 +79,8 @@ Patch1:     1-remove-non-linux-environments.patch
 # core artifacts to install properly.
 # Note: this can be fixed upstream by updating mockito to at least v3.10.0
 Patch2:     2-skip-writer-tests.patch
-
+# Bump the lz4 version up to 1.10.2, as well as the p2 plugin version to resolve an osgi issue
+Patch3:	    3-bump-lz4-version.patch
 
 # Dependencies are bundled into a tar.gz and passed as a local maven repository for the build
 ExclusiveArch: x86_64
@@ -104,7 +105,7 @@ Provides: bundled(osgi(javax.annotation)) = 1.3.5
 Provides: bundled(osgi(javax.el)) = 2.2.0
 Provides: bundled(osgi(javax.inject)) = 1.0.0
 Provides: bundled(osgi(javax.servlet.jsp)) = 2.2.0
-Provides: bundled(osgi(lz4-java)) = 1.8.0
+Provides: bundled(osgi(lz4-java)) = 1.10.2
 Provides: bundled(osgi(org.apache.aries.spifly.dynamic.bundle)) = 1.3.4
 Provides: bundled(osgi(org.apache.batik.constants)) = 1.14.0
 Provides: bundled(osgi(org.apache.batik.css)) = 1.14.0
@@ -548,10 +549,26 @@ applications running locally or deployed in production environments.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
+
+# explicitly use maven-clean-plugin at v2.5
+cat > settings-offline.xml <<EOF
+<settings>
+  <localRepository>repository-%{version}</localRepository>
+  <offline>true</offline>
+</settings>
+EOF
+
+# Apply the fix directly to the core pom
+sed -i 's|<plugins>|<plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-clean-plugin</artifactId><version>2.5</version></plugin>|' core/pom.xml
+
+cat core/pom.xml
+ls -l ./
+ls -l repository-%{version}/org/apache/maven/plugins/maven-clean-plugin/2.5
 
 # Build & install jmc core libraries
 # Skip the JDP Multicast Tests that don't work offline/under a VPN
-mvn -Dmaven.repo.local=repository-%{version}-%{revdate} -o clean install -f core/pom.xml -DskipJDPMulticastTests=true
+mvn -Dmaven.repo.local=repository-%{version} -s settings-offline.xml -o clean install -f core/pom.xml -DskipJDPMulticastTests=true
 
 %pom_remove_plugin org.codehaus.mojo:flatten-maven-plugin
 %pom_remove_plugin com.github.spotbugs:spotbugs-maven-plugin
@@ -569,7 +586,7 @@ mvn -Dmaven.repo.local=repository-%{version}-%{revdate} -o clean install -f core
 %build
 # some tests require large heap and fail with OOM
 # depending on the builder resources
-mvn -Dmaven.repo.local=repository-%{version}-%{revdate} verify -o -Dmaven.test.failure.ignore=true -DskipJDPMulticastTests=true -DbuildId=rhel -DbuildNumber=%{revhash} -Dbuild.date=%{revdate}
+mvn -Dmaven.repo.local=repository-%{version} verify -o -Dmaven.test.failure.ignore=true -DskipJDPMulticastTests=true -DbuildId=rhel -DbuildNumber=%{revhash} -Dbuild.date=%{revdate}
 
 %install
 
@@ -624,6 +641,9 @@ sed -i "/.SH FILES/a .I %{_sysconfdir}/%{name}.ini" %{buildroot}%{_mandir}/man1/
 %{_datadir}/applications/%{name}.desktop
 
 %changelog
+* Wed Jan 7 2026 Joshua Matsuoka <jmatsuok@redhat.com> - 8.2.0-4
+- Bump LZ4 Version to 1.10.2. Related: RHEL-135478
+
 * Mon Dec 5 2022 Joshua Matsuoka <jmatsuok@redhat.com> - 8.2.0-3
 - Fix provides and requires exclusions. Related: rhbz#2122401
 
