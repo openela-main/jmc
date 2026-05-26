@@ -4,7 +4,7 @@
 %global patchlevel 0
 
 # Revision
-%global revnum 18
+%global revnum 19
 # set to 1 for snapshots, 0 for release
 %global usesnapshot 1
 
@@ -81,6 +81,8 @@ Patch1:     1-remove-non-linux-environments.patch
 Patch2:     2-skip-writer-tests.patch
 # Bump the lz4 version up to 1.10.2, as well as the p2 plugin version to resolve an osgi issue
 Patch3:	    3-bump-lz4-version.patch
+# Remove the websocket plugin.
+Patch4:	    4-remove-websocket.patch
 
 # Dependencies are bundled into a tar.gz and passed as a local maven repository for the build
 ExclusiveArch: x86_64
@@ -365,26 +367,12 @@ Provides: bundled(osgi(org.eclipse.help.ui.nl_zh)) = 4.21.0
 Provides: bundled(osgi(org.eclipse.help.webapp.nl_ja)) = 4.21.0
 Provides: bundled(osgi(org.eclipse.help.webapp.nl_zh)) = 4.21.0
 Provides: bundled(osgi(org.eclipse.jetty.http)) = 10.0.6
-Provides: bundled(osgi(org.eclipse.jetty.http)) = 10.0.7
 Provides: bundled(osgi(org.eclipse.jetty.io)) = 10.0.6
-Provides: bundled(osgi(org.eclipse.jetty.io)) = 10.0.7
 Provides: bundled(osgi(org.eclipse.jetty.security)) = 10.0.6
-Provides: bundled(osgi(org.eclipse.jetty.security)) = 10.0.7
 Provides: bundled(osgi(org.eclipse.jetty.server)) = 10.0.6
-Provides: bundled(osgi(org.eclipse.jetty.server)) = 10.0.7
 Provides: bundled(osgi(org.eclipse.jetty.servlet)) = 10.0.6
-Provides: bundled(osgi(org.eclipse.jetty.servlet)) = 10.0.7
 Provides: bundled(osgi(org.eclipse.jetty.util)) = 10.0.6
-Provides: bundled(osgi(org.eclipse.jetty.util)) = 10.0.7
 Provides: bundled(osgi(org.eclipse.jetty.util.ajax)) = 10.0.6
-Provides: bundled(osgi(org.eclipse.jetty.webapp)) = 10.0.7
-Provides: bundled(osgi(org.eclipse.jetty.websocket.api)) = 10.0.7
-Provides: bundled(osgi(org.eclipse.jetty.websocket.common)) = 10.0.7
-Provides: bundled(osgi(org.eclipse.jetty.websocket.core.common)) = 10.0.7
-Provides: bundled(osgi(org.eclipse.jetty.websocket.core.server)) = 10.0.7
-Provides: bundled(osgi(org.eclipse.jetty.websocket.server)) = 10.0.7
-Provides: bundled(osgi(org.eclipse.jetty.websocket.servlet)) = 10.0.7
-Provides: bundled(osgi(org.eclipse.jetty.xml)) = 10.0.7
 Provides: bundled(osgi(org.eclipse.jface)) = 3.23.0
 Provides: bundled(osgi(org.eclipse.jface.databinding)) = 1.13.0
 Provides: bundled(osgi(org.eclipse.jface.databinding.nl_ja)) = 4.21.0
@@ -550,6 +538,7 @@ applications running locally or deployed in production environments.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 # explicitly use maven-clean-plugin at v2.5
 cat > settings-offline.xml <<EOF
@@ -641,6 +630,9 @@ sed -i "/.SH FILES/a .I %{_sysconfdir}/%{name}.ini" %{buildroot}%{_mandir}/man1/
 %{_datadir}/applications/%{name}.desktop
 
 %changelog
+* Tue May 19 2026 Joshua Matsuoka <jmatsuok@redhat.com> - 8.2.0-5
+- Remove the websocket plugin. Related: RHEL-168615
+
 * Wed Jan 7 2026 Joshua Matsuoka <jmatsuok@redhat.com> - 8.2.0-4
 - Bump LZ4 Version to 1.10.2. Related: RHEL-135478
 

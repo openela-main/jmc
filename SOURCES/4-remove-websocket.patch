@@ -1,0 +1,590 @@
+diff --git a/application/org.openjdk.jmc.feature.flightrecorder/feature.xml b/application/org.openjdk.jmc.feature.flightrecorder/feature.xml
+index 81af1d65..af766c5b 100644
+--- a/application/org.openjdk.jmc.feature.flightrecorder/feature.xml
++++ b/application/org.openjdk.jmc.feature.flightrecorder/feature.xml
+@@ -157,27 +157,6 @@
+          version="0.0.0"
+          unpack="false"/>
+ 
+-   <plugin
+-         id="org.eclipse.jetty.websocket.api"
+-         download-size="0"
+-         install-size="0"
+-         version="0.0.0"
+-         unpack="false"/>
+-
+-   <plugin
+-         id="org.eclipse.jetty.websocket.servlet"
+-         download-size="0"
+-         install-size="0"
+-         version="0.0.0"
+-         unpack="false"/>
+-
+-   <plugin
+-         id="org.eclipse.jetty.websocket.server"
+-         download-size="0"
+-         install-size="0"
+-         version="0.0.0"
+-         unpack="false"/>
+-
+    <plugin
+          id="org.openjdk.jmc.flightrecorder.flameview"
+          download-size="0"
+diff --git a/application/org.openjdk.jmc.flightrecorder.ui/META-INF/MANIFEST.MF b/application/org.openjdk.jmc.flightrecorder.ui/META-INF/MANIFEST.MF
+index e5e0e241..5268c51b 100644
+--- a/application/org.openjdk.jmc.flightrecorder.ui/META-INF/MANIFEST.MF
++++ b/application/org.openjdk.jmc.flightrecorder.ui/META-INF/MANIFEST.MF
+@@ -23,9 +23,6 @@ Require-Bundle: org.openjdk.jmc.rjmx,
+  org.eclipse.jetty.server,
+  org.eclipse.jetty.servlet,
+  jakarta.servlet-api,
+- org.eclipse.jetty.websocket.api,
+- org.eclipse.jetty.websocket.server,
+- org.eclipse.jetty.websocket.servlet,
+  org.eclipse.jetty.util
+ Bundle-ActivationPolicy: lazy
+ Bundle-Activator: org.openjdk.jmc.flightrecorder.ui.FlightRecorderUI
+diff --git a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/FlightRecorderUI.java b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/FlightRecorderUI.java
+index f32f1cf0..bd3fb114 100644
+--- a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/FlightRecorderUI.java
++++ b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/FlightRecorderUI.java
+@@ -143,23 +143,6 @@ public final class FlightRecorderUI extends MCAbstractUIPlugin {
+ 		}
+ 	}
+ 
+-	public static int parseWebsocketPort(String port) {
+-		try {
+-			return Integer.parseInt(port);
+-		} catch (NumberFormatException e) {
+-			return PreferenceKeys.DEFAULT_WEBSOCKET_PORT;
+-		}
+-	}
+-
+-	public int getWebsocketPort() {
+-		return parseWebsocketPort(getPreferenceStore().getString(PreferenceKeys.PROPERTY_WEBSOCKET_SERVER_PORT));
+-	}
+-
+-	public boolean isWebsocketServerEnabled() {
+-		int port = getWebsocketPort();
+-		return port > 0 && port < 65535;
+-	}
+-
+ 	public static String validateDumpTimespan(String text) {
+ 		try {
+ 			IQuantity timespan = UnitLookup.TIMESPAN.parseInteractive(text);
+diff --git a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/JfrEditor.java b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/JfrEditor.java
+index 7dc8dcd7..b5b67d0d 100644
+--- a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/JfrEditor.java
++++ b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/JfrEditor.java
+@@ -83,7 +83,6 @@ import org.openjdk.jmc.flightrecorder.ui.messages.internal.Messages;
+ import org.openjdk.jmc.flightrecorder.ui.preferences.PreferenceKeys;
+ import org.openjdk.jmc.flightrecorder.ui.selection.IFlavoredSelection;
+ import org.openjdk.jmc.flightrecorder.ui.selection.SelectionStore;
+-import org.openjdk.jmc.flightrecorder.ui.websocket.WebsocketServer;
+ import org.openjdk.jmc.ui.MCPathEditorInput;
+ import org.openjdk.jmc.ui.idesupport.IDESupportUIToolkit;
+ import org.openjdk.jmc.ui.misc.CompositeToolkit;
+@@ -113,8 +112,6 @@ public class JfrEditor extends EditorPart implements INavigationLocationProvider
+ 	private Reference<ResultPage> resultPageRef = new WeakReference<>(null);
+ 	private RuleManager ruleEngine;
+ 	private IPropertyChangeListener analysisEnabledListener;
+-	private IPropertyChangeListener websocketServerEnabledListener;
+-	private WebsocketServer websocketServer;
+ 
+ 	public JfrEditor() {
+ 		super();
+@@ -126,29 +123,7 @@ public class JfrEditor extends EditorPart implements INavigationLocationProvider
+ 				}
+ 			}
+ 		};
+-		if (FlightRecorderUI.getDefault().isWebsocketServerEnabled()) {
+-			int websocketServerPort = FlightRecorderUI.getDefault().getWebsocketPort();
+-			websocketServer = new WebsocketServer(websocketServerPort);
+-		}
+-		websocketServerEnabledListener = e -> {
+-			if (e.getProperty().equals(PreferenceKeys.PROPERTY_WEBSOCKET_SERVER_PORT)) {
+-				int newWebsocketServerPort = FlightRecorderUI.parseWebsocketPort((String) e.getNewValue());
+-				if (newWebsocketServerPort > 0) {
+-					if (websocketServer != null) {
+-						websocketServer.shutdown();
+-						websocketServer = null;
+-					}
+-					websocketServer = new WebsocketServer(newWebsocketServerPort);
+-				} else {
+-					if (websocketServer != null) {
+-						websocketServer.shutdown();
+-						websocketServer = null;
+-					}
+-				}
+-			}
+-		};
+ 		FlightRecorderUI.getDefault().getPreferenceStore().addPropertyChangeListener(analysisEnabledListener);
+-		FlightRecorderUI.getDefault().getPreferenceStore().addPropertyChangeListener(websocketServerEnabledListener);
+ 	}
+ 
+ 	@Override
+@@ -214,9 +189,6 @@ public class JfrEditor extends EditorPart implements INavigationLocationProvider
+ 		if (!items.hasItems() && currentPage != null) {
+ 			selectionItems = getModel().getItems().apply(getDisplayablePage(currentPage).getDefaultSelectionFilter());
+ 		}
+-		if (websocketServer != null) {
+-			websocketServer.notifyAll(selectionItems);
+-		}
+ 		getSite().getSelectionProvider().setSelection(new StructuredSelection(selectionItems));
+ 	}
+ 
+@@ -429,7 +401,6 @@ public class JfrEditor extends EditorPart implements INavigationLocationProvider
+ 	public void dispose() {
+ 		ruleEngine.dispose();
+ 		FlightRecorderUI.getDefault().getPreferenceStore().removePropertyChangeListener(analysisEnabledListener);
+-		FlightRecorderUI.getDefault().getPreferenceStore().removePropertyChangeListener(websocketServerEnabledListener);
+ 		super.dispose();
+ 	}
+ 
+diff --git a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/messages/internal/Messages.java b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/messages/internal/Messages.java
+index 278456a7..771529fe 100644
+--- a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/messages/internal/Messages.java
++++ b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/messages/internal/Messages.java
+@@ -453,9 +453,6 @@ public class Messages extends NLS {
+ 	public static String PREFERENCES_REMOVE_FINISHED_RECORDING_TEXT;
+ 	public static String PREFERENCES_RULES_CONFIGURE_SELECTED;
+ 	public static String PREFERENCES_SHOW_MONITORING_WARNING_TEXT;
+-	public static String PREFERENCES_WEBSOCKET_SERVER_PORT_INVALID;
+-	public static String PREFERENCES_WEBSOCKET_SERVER_PORT_TEXT;
+-	public static String PREFERENCES_WEBSOCKET_SERVER_PORT_TOOLTIP;
+ 	public static String ProcessesPage_AGGR_CONCURRENT_PROCESSES;
+ 	public static String ProcessesPage_AGGR_CONCURRENT_PROCESSES_DESC;
+ 	public static String ProcessesPage_AGGR_FIRST_SAMPLE;
+diff --git a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/preferences/GeneralPage.java b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/preferences/GeneralPage.java
+index 7207a8a6..a7332aa3 100644
+--- a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/preferences/GeneralPage.java
++++ b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/preferences/GeneralPage.java
+@@ -93,7 +93,6 @@ public class GeneralPage extends PreferencePage implements IWorkbenchPreferenceP
+ 	private Text itemListValue;
+ 	private Text propertiesArrayStringSizeValue;
+ 	private Text editorRuleEvaluationThreadsValue;
+-	private Text websocketPortValue;
+ 
+ 	@Override
+ 	protected Control createContents(Composite parent) {
+@@ -170,21 +169,12 @@ public class GeneralPage extends PreferencePage implements IWorkbenchPreferenceP
+ 		editorRuleEvaluationThreadsValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+ 		QuantityKindProposal.install(editorRuleEvaluationThreadsValue, UnitLookup.NUMBER);
+ 
+-		Label websocketPortLabel = new Label(defaultTimespanContainer, SWT.NONE);
+-		websocketPortLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+-		websocketPortLabel.setText(Messages.PREFERENCES_WEBSOCKET_SERVER_PORT_TEXT);
+-		websocketPortLabel.setToolTipText(Messages.PREFERENCES_WEBSOCKET_SERVER_PORT_TOOLTIP);
+-		websocketPortValue = new Text(defaultTimespanContainer, SWT.BORDER);
+-		websocketPortValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+-		QuantityKindProposal.install(websocketPortValue, UnitLookup.NUMBER);
+-
+ 		loadDumpTypeFromPrefStore(false);
+ 		loadTimespanFromPrefStore(false);
+ 		loadSelectionStoreSizeFromPrefStore(false);
+ 		loadItemListSizeFromPrefStore(false);
+ 		loadPropertiesArrayStringSizeFromPrefStore(false);
+ 		loadEditorRuleEvaluationThreadsFromPrefStore(false);
+-		loadWebsocketPortFromPrefStore(false);
+ 		timespanValue.addModifyListener(new ModifyListener() {
+ 			@Override
+ 			public void modifyText(ModifyEvent e) {
+@@ -215,12 +205,6 @@ public class GeneralPage extends PreferencePage implements IWorkbenchPreferenceP
+ 				validatePage();
+ 			}
+ 		});
+-		websocketPortValue.addModifyListener(new ModifyListener() {
+-			@Override
+-			public void modifyText(ModifyEvent e) {
+-				validatePage();
+-			}
+-		});
+ 
+ 		return container;
+ 	}
+@@ -241,23 +225,7 @@ public class GeneralPage extends PreferencePage implements IWorkbenchPreferenceP
+ 		if (error == null && error2 == null && error3 == null) {
+ 			setErrorMessage(error4);
+ 		}
+-		String error5 = validateWebsocketPort(websocketPortValue.getText());
+-		if (error == null && error2 == null && error3 == null) {
+-			setErrorMessage(error5);
+-		}
+-		setValid(error == null && error2 == null && error3 == null && error4 == null && error5 == null);
+-	}
+-
+-	public static String validateWebsocketPort(String text) {
+-		try {
+-			int port = Integer.parseInt(text);
+-			if (port < 0 || port > 65535) {
+-				return Messages.PREFERENCES_WEBSOCKET_SERVER_PORT_INVALID;
+-			}
+-		} catch (NumberFormatException e) {
+-			return Messages.PREFERENCES_WEBSOCKET_SERVER_PORT_INVALID;
+-		}
+-		return null;
++		setValid(error == null && error2 == null && error3 == null && error4 == null);
+ 	}
+ 
+ 	public static String validateNumEvaluationThreads(String text) {
+@@ -337,12 +305,6 @@ public class GeneralPage extends PreferencePage implements IWorkbenchPreferenceP
+ 		editorRuleEvaluationThreadsValue.setText(FlightRecorderUI.parseItemListSize(size).interactiveFormat());
+ 	}
+ 
+-	private void loadWebsocketPortFromPrefStore(boolean loadDefault) {
+-		String port = loadDefault ? getPreferenceStore().getDefaultString(PreferenceKeys.PROPERTY_WEBSOCKET_SERVER_PORT)
+-				: getPreferenceStore().getString(PreferenceKeys.PROPERTY_WEBSOCKET_SERVER_PORT);
+-		websocketPortValue.setText(Integer.toString(FlightRecorderUI.parseWebsocketPort(port)));
+-	}
+-
+ //	private Button createClearButton(Composite parent) {
+ //		Button button = new Button(parent, SWT.NONE);
+ //		button.setText(Messages.PREFERENCES_CLEAR_USER_SETTINGS_TEXT);
+@@ -424,7 +386,6 @@ public class GeneralPage extends PreferencePage implements IWorkbenchPreferenceP
+ 		loadItemListSizeFromPrefStore(true);
+ 		loadPropertiesArrayStringSizeFromPrefStore(true);
+ 		loadEditorRuleEvaluationThreadsFromPrefStore(true);
+-		loadWebsocketPortFromPrefStore(true);
+ 		super.performDefaults();
+ 	}
+ 
+@@ -476,13 +437,6 @@ public class GeneralPage extends PreferencePage implements IWorkbenchPreferenceP
+ 			setErrorMessage(qce.getLocalizedMessage());
+ 			return false;
+ 		}
+-		try {
+-			int port = Integer.parseInt(websocketPortValue.getText());
+-			getPreferenceStore().setValue(PreferenceKeys.PROPERTY_WEBSOCKET_SERVER_PORT, Integer.toString(port));
+-		} catch (NumberFormatException e) {
+-			setErrorMessage(Messages.PREFERENCES_WEBSOCKET_SERVER_PORT_INVALID);
+-			return false;
+-		}
+ 
+ 		setErrorMessage(null);
+ 		if (timespanRadio.getSelection()) {
+diff --git a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/preferences/PreferenceKeys.java b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/preferences/PreferenceKeys.java
+index ecbd086a..ade4d320 100644
+--- a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/preferences/PreferenceKeys.java
++++ b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/preferences/PreferenceKeys.java
+@@ -45,8 +45,6 @@ public class PreferenceKeys {
+ 	public static final String PROPERTY_DEFAULT_DUMP_TIMESPAN = "flightrecorder.controlpanel.default.dump.timespan"; //$NON-NLS-1$
+ 	public static final String PROPERTY_DEFAULT_DUMP_TYPE = "flightrecorder.controlpanel.default.dump.type"; //$NON-NLS-1$
+ 	public static final String PROPERTY_ENABLE_RECORDING_ANALYSIS = "flightrecorder.controlpanel.enable.recording.analysis"; //$NON-NLS-1$
+-	public static final int DEFAULT_WEBSOCKET_PORT = 0;
+-	public static final String PROPERTY_WEBSOCKET_SERVER_PORT = "flightrecorder.controlpanel.websocket.server.port"; //$NON-NLS-1$
+ 	public static final String PROPERTY_INCLUDE_EXPERIMENTAL_EVENTS_AND_FIELDS = "flightrecorder.ui.includeExperimentalEventsAndFields"; //$NON-NLS-1$
+ 	public static final String PROPERTY_ALLOW_INCOMPLETE_RECORDING_FILE = "flightrecorder.ui.allowIncompleteRecordingFile"; //$NON-NLS-1$
+ 	public static final IQuantity DUMP_TIMESPAN_DEFAULT = UnitLookup.MINUTE.quantity(5);
+diff --git a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/websocket/WebsocketServer.java b/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/websocket/WebsocketServer.java
+deleted file mode 100644
+index 22bd2eb9..00000000
+--- a/application/org.openjdk.jmc.flightrecorder.ui/src/main/java/org/openjdk/jmc/flightrecorder/ui/websocket/WebsocketServer.java
++++ /dev/null
+@@ -1,256 +0,0 @@
+-/*
+- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+- * Copyright (c) 2021, Datadog, Inc. All rights reserved.
+- *
+- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+- *
+- * The contents of this file are subject to the terms of either the Universal Permissive License
+- * v 1.0 as shown at http://oss.oracle.com/licenses/upl
+- *
+- * or the following license:
+- *
+- * Redistribution and use in source and binary forms, with or without modification, are permitted
+- * provided that the following conditions are met:
+- *
+- * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
+- * and the following disclaimer.
+- *
+- * 2. Redistributions in binary form must reproduce the above copyright notice, this list of
+- * conditions and the following disclaimer in the documentation and/or other materials provided with
+- * the distribution.
+- *
+- * 3. Neither the name of the copyright holder nor the names of its contributors may be used to
+- * endorse or promote products derived from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+- * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- */
+-package org.openjdk.jmc.flightrecorder.ui.websocket;
+-
+-import java.io.IOException;
+-import java.time.Duration;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.concurrent.CopyOnWriteArrayList;
+-import java.util.concurrent.ExecutorService;
+-import java.util.concurrent.Executors;
+-import java.util.concurrent.TimeoutException;
+-import java.util.function.Function;
+-import java.util.logging.Level;
+-import java.util.stream.Collectors;
+-
+-import org.eclipse.jetty.server.Server;
+-import org.eclipse.jetty.server.ServerConnector;
+-import org.eclipse.jetty.servlet.ServletContextHandler;
+-import org.eclipse.jetty.websocket.api.Session;
+-import org.eclipse.jetty.websocket.api.WebSocketAdapter;
+-import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
+-import org.eclipse.jetty.websocket.servlet.WebSocketUpgradeFilter;
+-import org.openjdk.jmc.common.item.IItemCollection;
+-import org.openjdk.jmc.flightrecorder.serializers.dot.DotSerializer;
+-import org.openjdk.jmc.flightrecorder.serializers.json.FlameGraphJsonSerializer;
+-import org.openjdk.jmc.flightrecorder.serializers.json.IItemCollectionJsonSerializer;
+-import org.openjdk.jmc.flightrecorder.stacktrace.FrameSeparator;
+-import org.openjdk.jmc.flightrecorder.stacktrace.FrameSeparator.FrameCategorization;
+-import org.openjdk.jmc.flightrecorder.stacktrace.graph.StacktraceGraphModel;
+-import org.openjdk.jmc.flightrecorder.stacktrace.tree.StacktraceTreeModel;
+-import org.openjdk.jmc.flightrecorder.ui.FlightRecorderUI;
+-
+-public class WebsocketServer {
+-
+-	private static int MAX_MESSAGE_SIZE = 1024 * 1024 * 1024;
+-	private static int IDLE_TIMEOUT_MINUTES = 5;
+-
+-	private final int port;
+-	private Server server;
+-	private List<WebsocketConnectionHandler> handlers = new CopyOnWriteArrayList<>();
+-	private List<WebsocketConnectionHandler> treeHandlers = new CopyOnWriteArrayList<>();
+-	private List<WebsocketConnectionHandler> graphHandlers = new CopyOnWriteArrayList<>();
+-	private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+-	private IItemCollection currentSelection = null;
+-
+-	public WebsocketServer(int port) {
+-		this.port = port;
+-		executorService.execute(() -> startServer());
+-	}
+-
+-	public int getPort() {
+-		return port;
+-	}
+-
+-	private void startServer() {
+-		server = new Server();
+-		ServerConnector connector = new ServerConnector(server);
+-		connector.setHost("127.0.0.1");
+-		connector.setPort(port);
+-		server.addConnector(connector);
+-
+-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+-		context.setContextPath("/");
+-		server.setHandler(context);
+-
+-		JettyWebSocketServletContainerInitializer.configure(context, (servletContext, container) -> {
+-			container.setMaxBinaryMessageSize(MAX_MESSAGE_SIZE);
+-			container.setIdleTimeout(Duration.ofMinutes(IDLE_TIMEOUT_MINUTES));
+-			container.addMapping("/events/*", (req, resp) -> {
+-				// try to send the current selection when the client connects
+-				// for simplicity, we serialise for every new connection
+-				String eventsJson = WebsocketServer.toEventsJsonString(currentSelection);
+-				WebsocketConnectionHandler handler = new WebsocketConnectionHandler(eventsJson);
+-				handlers.add(handler);
+-				return handler;
+-			});
+-			container.addMapping("/tree/*", (req, resp) -> {
+-				String treeJson = WebsocketServer.toTreeModelJsonString(currentSelection);
+-				WebsocketConnectionHandler handler = new WebsocketConnectionHandler(treeJson);
+-				treeHandlers.add(handler);
+-				return handler;
+-			});
+-			container.addMapping("/graph/*", (req, resp) -> {
+-				String dot = WebsocketServer.toGraphModelDotString(currentSelection);
+-				WebsocketConnectionHandler handler = new WebsocketConnectionHandler(dot);
+-				graphHandlers.add(handler);
+-				return handler;
+-			});
+-		});
+-
+-		try {
+-			WebSocketUpgradeFilter.ensureFilter(context.getServletContext());
+-			FlightRecorderUI.getDefault().getLogger().log(Level.INFO,
+-					"Starting websocket server listening on port " + port);
+-			server.start();
+-			server.join();
+-		} catch (Exception e) {
+-			FlightRecorderUI.getDefault().getLogger().log(Level.SEVERE, "Failed to start websocket server", e);
+-		}
+-	}
+-
+-	public void notifyAll(IItemCollection events) {
+-		currentSelection = events;
+-		notifyAllEventHandlers(events);
+-		notifyAllGraphHandlers(events);
+-		notifyAllTreeHandlers(events);
+-	}
+-
+-	private void notifyAllEventHandlers(IItemCollection events) {
+-		handlers = notifyAllHandlers(events, handlers, WebsocketServer::toEventsJsonString);
+-	}
+-
+-	private void notifyAllGraphHandlers(IItemCollection events) {
+-		graphHandlers = notifyAllHandlers(events, graphHandlers, WebsocketServer::toGraphModelDotString);
+-	}
+-
+-	private void notifyAllTreeHandlers(IItemCollection events) {
+-		treeHandlers = notifyAllHandlers(events, treeHandlers, WebsocketServer::toTreeModelJsonString);
+-	}
+-
+-	private static String toEventsJsonString(IItemCollection items) {
+-		if (items == null) {
+-			return null;
+-		}
+-		return IItemCollectionJsonSerializer.toJsonString(items);
+-	}
+-
+-	private static String toGraphModelDotString(IItemCollection items) {
+-		if (items == null) {
+-			return null;
+-		}
+-		FrameSeparator frameSeparator = new FrameSeparator(FrameCategorization.METHOD, false);
+-		StacktraceGraphModel model = new StacktraceGraphModel(frameSeparator, items, null);
+-		return DotSerializer.toDot(model, 10_000, new HashMap<>());
+-	}
+-
+-	private static String toTreeModelJsonString(IItemCollection items) {
+-		if (items == null) {
+-			return null;
+-		}
+-		StacktraceTreeModel model = new StacktraceTreeModel(items);
+-		return FlameGraphJsonSerializer.toJson(model);
+-	}
+-
+-	private List<WebsocketConnectionHandler> notifyAllHandlers(
+-		IItemCollection events, List<WebsocketConnectionHandler> handlers,
+-		Function<IItemCollection, String> jsonSerializer) {
+-		handlers = handlers.stream().filter(h -> h.isConnected()).collect(Collectors.toList());
+-		if (handlers.size() == 0 || events == null) {
+-			// do nothing if no handlers are registered
+-			return handlers;
+-		}
+-		String json = jsonSerializer.apply(events);
+-		handlers.forEach(handler -> handler.sendMessage(json));
+-		return handlers;
+-	}
+-
+-	public void shutdown() {
+-		try {
+-			FlightRecorderUI.getDefault().getLogger().log(Level.INFO,
+-					"Stopping websocket server listening on port " + port);
+-			server.stop();
+-			// TODO: see if we need to cleanup executor service and thread
+-		} catch (Exception e) {
+-			FlightRecorderUI.getDefault().getLogger().log(Level.SEVERE, "Failed to stop websocket server", e);
+-		}
+-	}
+-
+-	private static class WebsocketConnectionHandler extends WebSocketAdapter {
+-		private String firstMessage;
+-
+-		WebsocketConnectionHandler(String firstMessage) {
+-			this.firstMessage = firstMessage;
+-		}
+-
+-		public void sendMessage(String message) {
+-			if (getSession() != null && isConnected()) {
+-				FlightRecorderUI.getDefault().getLogger().log(Level.INFO,
+-						"Sending message to " + getSession().getRemoteAddress().toString());
+-				try {
+-					getSession().getRemote().sendString(message);
+-				} catch (IOException e) {
+-					FlightRecorderUI.getDefault().getLogger().log(Level.SEVERE, "Failed to send websocket message", e);
+-				}
+-			}
+-		}
+-
+-		@Override
+-		public void onWebSocketConnect(Session sess) {
+-			super.onWebSocketConnect(sess);
+-			FlightRecorderUI.getDefault().getLogger().log(Level.INFO,
+-					"Socket connected to " + sess.getRemoteAddress().toString());
+-			try {
+-				if (firstMessage != null) {
+-					getSession().getRemote().sendString(firstMessage);
+-					firstMessage = null;
+-				}
+-			} catch (IOException e) {
+-				FlightRecorderUI.getDefault().getLogger().log(Level.SEVERE, "Failed to show outline view", e);
+-			}
+-		}
+-
+-		@Override
+-		public void onWebSocketText(String message) {
+-			super.onWebSocketText(message);
+-		}
+-
+-		@Override
+-		public void onWebSocketClose(int statusCode, String reason) {
+-			super.onWebSocketClose(statusCode, reason);
+-			FlightRecorderUI.getDefault().getLogger().log(Level.INFO, "Socket closed: [" + statusCode + "] " + reason);
+-		}
+-
+-		@Override
+-		public void onWebSocketError(Throwable cause) {
+-			super.onWebSocketError(cause);
+-			if (cause.getCause() instanceof TimeoutException) {
+-				FlightRecorderUI.getDefault().getLogger().log(Level.INFO, "Websocket timed out");
+-			} else {
+-				FlightRecorderUI.getDefault().getLogger().log(Level.SEVERE, "Websocket error", cause);
+-			}
+-		}
+-	}
+-}
+diff --git a/application/org.openjdk.jmc.flightrecorder.ui/src/main/resources/org/openjdk/jmc/flightrecorder/ui/messages/internal/messages.properties b/application/org.openjdk.jmc.flightrecorder.ui/src/main/resources/org/openjdk/jmc/flightrecorder/ui/messages/internal/messages.properties
+index af337b20..fa4ddf3c 100644
+--- a/application/org.openjdk.jmc.flightrecorder.ui/src/main/resources/org/openjdk/jmc/flightrecorder/ui/messages/internal/messages.properties
++++ b/application/org.openjdk.jmc.flightrecorder.ui/src/main/resources/org/openjdk/jmc/flightrecorder/ui/messages/internal/messages.properties
+@@ -389,8 +389,6 @@ NAVIGATOR_ZOOM_OUT_TEXT=Zoom Out
+ 
+ PREFERENCES_CONFIRM_REMOVE_TEMPLATE_TEXT=Ask for confirmation before removing flight recording templates
+ PREFERENCES_ENABLE_RECORDING_ANALYSIS=Enable flight recording analysis
+-PREFERENCES_WEBSOCKET_SERVER_PORT_TEXT=Websocket server port (set to 0 to disable)
+-PREFERENCES_WEBSOCKET_SERVER_PORT_TOOLTIP=Start a websocket server bound to 127.0.0.1 and the selected port. The server pushes updates whenever the selection changes in the UI.
+ PREFERENCES_INCLUDE_EXPERIMENTAL_EVENTS_AND_FIELDS=Include experimental events and fields when reading flight recording files
+ PREFERENCES_ALLOW_INCOMPLETE_RECORDING_FILE=Enable reading of incomplete flight recording files
+ PREFERENCES_SHOW_MONITORING_WARNING_TEXT=Show warnings for problems that occur while monitoring flight recordings.
+@@ -400,7 +398,6 @@ PREFERENCES_ENABLED_RULES=Enabled Rules
+ PREFERENCES_EVALUATION_THREAD_NUMBER_TEXT=Number of rule evaluation threads:
+ PREFERENCES_EVALUATION_THREAD_NUMBER_TOOLTIP=This sets the number of threads each editor will create and run in parallel to evaluate rules for that flight recording.
+ PREFERENCES_EVALUATION_THREAD_NUMBER_LESS_THAN_ONE=Number of rule evaluation threads: Must be at least 1
+-PREFERENCES_WEBSOCKET_SERVER_PORT_INVALID=Websocket server port must be a number between 0 and 65535
+ # {0} is an exception message
+ PREFERENCES_EVALUATION_THREAD_NUMBER_UNPARSEABLE=Number of rule evaluation threads: {0}
+ PREFERENCES_PROPERTIES_ARRAY_STRING_SIZE_TEXT=Maximum display length of arrays in Properties view
+diff --git a/releng/platform-definitions/platform-definition-2021-06/platform-definition-2021-06.target b/releng/platform-definitions/platform-definition-2021-06/platform-definition-2021-06.target
+index 70d29746..e2315328 100644
+--- a/releng/platform-definitions/platform-definition-2021-06/platform-definition-2021-06.target
++++ b/releng/platform-definitions/platform-definition-2021-06/platform-definition-2021-06.target
+@@ -45,10 +45,6 @@
+             <unit id="org.adoptopenjdk.jemmy-browser" version="2.0.0"/>
+             <unit id="org.adoptopenjdk.jemmy-core" version="2.0.0"/>
+             <unit id="org.adoptopenjdk.jemmy-swt" version="2.0.0"/>
+-            <unit id="org.eclipse.jetty.websocket.api" version="10.0.7"/>
+-            <unit id="org.eclipse.jetty.websocket.server" version="10.0.7"/>
+-            <unit id="org.eclipse.jetty.websocket.servlet" version="10.0.7"/>
+-            <unit id="org.eclipse.jetty.websocket.javax.server" version="10.0.7"/>
+             <unit id="org.apache.aries.spifly.dynamic.bundle" version="1.3.4"/>
+             <repository location="http://localhost:8080/site"/>
+         </location>
+diff --git a/releng/platform-definitions/platform-definition-2021-12/platform-definition-2021-12.target b/releng/platform-definitions/platform-definition-2021-12/platform-definition-2021-12.target
+index ebfc34eb..48bd6cbe 100644
+--- a/releng/platform-definitions/platform-definition-2021-12/platform-definition-2021-12.target
++++ b/releng/platform-definitions/platform-definition-2021-12/platform-definition-2021-12.target
+@@ -45,10 +45,6 @@
+             <unit id="org.adoptopenjdk.jemmy-browser" version="2.0.0"/>
+             <unit id="org.adoptopenjdk.jemmy-core" version="2.0.0"/>
+             <unit id="org.adoptopenjdk.jemmy-swt" version="2.0.0"/>
+-            <unit id="org.eclipse.jetty.websocket.api" version="10.0.7"/>
+-            <unit id="org.eclipse.jetty.websocket.server" version="10.0.7"/>
+-            <unit id="org.eclipse.jetty.websocket.servlet" version="10.0.7"/>
+-            <unit id="org.eclipse.jetty.websocket.javax.server" version="10.0.7"/>
+             <unit id="org.apache.aries.spifly.dynamic.bundle" version="1.3.4"/>
+             <repository location="http://localhost:8080/site"/>
+         </location>
